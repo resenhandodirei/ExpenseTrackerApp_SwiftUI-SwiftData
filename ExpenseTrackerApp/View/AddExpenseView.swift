@@ -4,20 +4,19 @@
 //
 //  Created by Larissa Martins Correa on 23/08/24.
 //
-
 import SwiftUI
 
 struct AddExpenseView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dismiss) private var context
     
     @State private var title: String = ""
     @State private var subTitle: String = ""
     @State private var date: Date = .init()
     @State private var amount: CGFloat = 0
     @State private var category: Category?
-    @Query(animation: .snappy) private var allCategories: [Category]
-     
+
+    // Supondo que allCategories venha de uma fonte de dados, como uma variável de estado
+    @State private var allCategories: [Category] = []
 
     var body: some View {
         NavigationStack {
@@ -30,7 +29,7 @@ struct AddExpenseView: View {
                     HStack(spacing: 4) {
                         Text("$")
                             .fontWeight(.semibold)
-                        TextField("0.0", value: $amount, format: .currency(code: "US")  )
+                        TextField("0.0", value: $amount, format: .currency(code: "USD"))
                     }
                 }
                 Section("Date") {
@@ -43,9 +42,9 @@ struct AddExpenseView: View {
                         Text("Category")
                         Spacer()
                         Picker("", selection: $category) {
-                            ForEach(allCategories) {
-                                Text($0.categoryName)
-                                    .tag($0)
+                            ForEach(allCategories) { category in
+                                Text(category.categoryName)
+                                    .tag(category as Category?)
                             }
                         }
                         .pickerStyle(.menu)
@@ -55,7 +54,7 @@ struct AddExpenseView: View {
             }
             .navigationTitle("Add Expense")
             .toolbar {
-                // Button de cancelar e de adicionar
+                // Botões de cancelar e adicionar
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
                         dismiss()
@@ -63,16 +62,16 @@ struct AddExpenseView: View {
                     .tint(.red)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Add", action: addExpense ) {
+                    Button("Add") {
+                        addExpense()
                     }
-            
                 }
             }
         }
-    
     }
+    
     func addExpense() {
-        
+        // Função para adicionar a despesa
     }
 }
 
