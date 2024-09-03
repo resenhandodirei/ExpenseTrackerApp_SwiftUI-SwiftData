@@ -1,9 +1,10 @@
- //
+//
 //  AddExpenseView.swift
 //  ExpenseTrackerApp
 //
 //  Created by Larissa Martins Correa on 23/08/24.
 //
+
 import SwiftUI
 import SwiftData
 
@@ -13,7 +14,7 @@ struct AddExpenseView: View {
     
     @State private var title: String = ""
     @State private var subTitle: String = ""
-    @State private var date: Date = .init()
+    @State private var date: Date = Date()
     @State private var amount: Double = 0.0
     @State private var category: Category?
 
@@ -33,21 +34,22 @@ struct AddExpenseView: View {
                         TextField("0.0", value: $amount, format: .currency(code: "USD"))
                     }
                 }
+                
                 Section("Date") {
                     DatePicker("", selection: $date, displayedComponents: [.date])
                         .datePickerStyle(.graphical)
                         .labelsHidden()
                 }
+                
                 if !allCategories.isEmpty {
-                    HStack {
-                        Text("Category")
-                        
-                        Spacer()
-                        
+                    Section("Category") {
                         Menu {
                             ForEach(allCategories) { category in
-                                self.category = category
-                            } Button("None") {
+                                Button(category.categoryName) {
+                                    self.category = category
+                                }
+                            }
+                            Button("None") {
                                 category = nil
                             }
                         } label: {
@@ -57,16 +59,6 @@ struct AddExpenseView: View {
                                 Text("None")
                             }
                         }
-                        
-//                        Picker("", selection: $category) {
-//                            ForEach(allCategories) { category in
-//                                Text(category.categoryName)
-//                                    .tag(category as Category?)
-//                            }
-//                            Text("None")
-//                        }
-//                        .pickerStyle(.menu)
-//                        .labelsHidden()
                     }
                 }
             }
@@ -107,6 +99,9 @@ struct AddExpenseView: View {
     }
 }
 
-#Preview {
-    AddExpenseView()
+struct AddExpenseView_Previews: PreviewProvider {
+    static var previews: some View {
+        AddExpenseView()
+    }
 }
+

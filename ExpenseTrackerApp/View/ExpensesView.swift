@@ -14,43 +14,32 @@ struct ExpensesView: View {
         SortDescriptor(\Expense.date, order: .reverse)
     ], animation: .snappy) private var allExpenses: [Expense]
     @Environment(\.modelContext) private var context
-    //Grouped Expenses
-    // This will also be used for filtering purpose.
+    
     @State private var groupedExpenses: [ExpenseGroup] = []
-    @State private var originalgroupedExpenses: [ExpenseGroup] = []
+    @State private var originalGroupedExpenses: [ExpenseGroup] = []
     @State private var addExpense: Bool = false
-    // Search Text
     @State private var searchText: String = ""
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(groupedExpenses) { $group in
+                ForEach(groupedExpenses) { group in
                     Section(group.groupTitle) {
                         ForEach(group.expenses) { expense in
-                            // Card View
                             ExpenseCardView(expense: expense)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button {
-                                        context.delete(expense)
-                                        withAnimation {
-                                            group.expense.removeAll(where: { $0.id == expense.id })
-                                        } // Removendo o grupo se não tiver mais nenhum gasto presente.
-                                        if group.expenses.isEmpty {
-                                            groupedExpenses.removeAll(where: { $0.id == group.id })
-                                        }
+                                        deleteExpense(expense, from: group)
                                     } label: {
                                         Image(systemName: "trash")
                                     }
                                     .tint(.red)
                                 }
                         }
-                        
                     }
                 }
             }
             .navigationTitle("Expenses")
-            // Search Bar
             .searchable(text: $searchText, placement: .navigationBarDrawer, prompt: Text("Search"))
             .overlay {
                 if allExpenses.isEmpty || groupedExpenses.isEmpty {
@@ -61,83 +50,98 @@ struct ExpensesView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        addExpense.toggle()
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                    }
+                    addButton
                 }
             }
-            .onChange(of: allExpenses, initial: true) { oldValue, newValue in
-                if newValue.count > oldValue.count || groupedExpenses.isEmpty || currentTab == "Categories" {
-                    createGroupedExpenses(newValue)
-                }
+            .onChange(of: allExpenses) { _ in
+                processExpenses()
             }
-            
-            .onChange(of: searchText, initial: false) { oldValue, newValue in
-                if  !newValue.isEmpty {
-                    filterExpenses(newValue)
+            .onChange(of: searchText) { _ in
+                if searchText.isEmpty {
+                    groupedExpenses = originalGroupedExpenses
                 } else {
-                    groupedExpense = originalGroupedExpenses
+                    filterExpenses()
                 }
             }
-            .sheet(isPresent: $addExpense) {
+            .sheet(isPresented: $addExpense) {
                 AddExpenseView()
                     .interactiveDismissDisabled()
             }
         }
-        func filterExpenses(_text: String) {
-            Task.detached(priority: .high) {
-                let query = text.lowercased()
-                let filteredExpenses = originalgroupedExpenses.compactMap {
-                    group -> GroupedExpenses? in
-                    let expenses = group.expenses.filter({ $0.title.lowercased().contain(query) })
-                    if expenses.isEmpty {
-                        return nil
-                    }
-                    return .init(date: group.date, expenses: expenses)
-                }
-                
-                await MainActor.run {
-                    groupedExpenses = filteredExpenses
+    }
+
+    private var addButton: some View {
+        Button {
+            addExpense.toggle()
+        } label: {
+            Image(systemName: "plus.circle.fill")
+                .font(.title3)
+        }
+    }
+
+    private func deleteExpense(_ expense: Expense, from group: ExpenseGroup) {
+        context.delete(expense)
+        withAnimation {
+            // Note: Creating a new ExpenseGroup to avoid mutating the original 'group'
+            let updatedGroup = ExpenseGroup(
+                dateComponents: group.dateComponents,
+                expenses: group.expenses.filter { $0.id != expense.id }
+            )
+            
+            if updatedGroup.expenses.isEmpty {
+                groupedExpenses.removeAll { $0.id == group.id }
+            } else {
+                // Replace the old group with the updated one
+                if let index = groupedExpenses.firstIndex(where: { $0.id == group.id }) {
+                    groupedExpenses[index] = updatedGroup
                 }
             }
         }
+    }
 
-    func createGroupedExpenses(_ expenses: [Expense]) {
+    private func processExpenses() {
         Task.detached(priority: .high) {
-            let groupedDict = groupExpensesByDate(expenses)
-            let dateComponents = Calendar.current.dateComponents([.day, .month, .year], from:
-                                                                    expense.date)
-            return dateComponents
+            let sortedExpenses = allExpenses.sorted { $0.date > $1.date }
+            await MainActor.run {
+                createGroupedExpenses(sortedExpenses)
+            }
         }
     }
 
-    let sortedDict = grouppedDict.sorted {
-        let calendar = Calendar.current
-        let date1 = calendar.date(from: $0.key) ?? Date()
-        let date2 = calendar.date(from: $1.key) ?? Date()
-        return calendar.compare(date1, to: date2, toGranularity: .day) == .orderedDescending
+    private func filterExpenses() {
+        Task.detached(priority: .high) {
+            let query = searchText.lowercased()
+            let filteredExpenses = originalGroupedExpenses.compactMap { group -> ExpenseGroup? in
+                let expenses = group.expenses.filter { $0.title.lowercased().contains(query) }
+                return expenses.isEmpty ? nil : ExpenseGroup(dateComponents: group.dateComponents, expenses: expenses)
+            }
+            await MainActor.run {
+                groupedExpenses = filteredExpenses
+            }
+        }
     }
 
-    
-
-    await @MainActor.run {
-            groupedExpenses = sortedDict.compactMap ({ dict in
-                let date = Calendar.current.date(from: dict.key) ?? .init()
-                return .init(date: date, expenses: dict.value)
-                )}
-                originalgroupedExpenses = groupedExpenses
-        
+    private func createGroupedExpenses(_ expenses: [Expense]) {
+        let groupedDict = Dictionary(grouping: expenses) { expense -> DateComponents in
+            Calendar.current.dateComponents([.day, .month, .year], from: expense.date)
+        }
+        let sortedDict = groupedDict.sorted {
+            let calendar = Calendar.current
+            let date1 = calendar.date(from: $0.key) ?? Date()
+            let date2 = calendar.date(from: $1.key) ?? Date()
+            return date1 > date2
+        }
+        groupedExpenses = sortedDict.compactMap { dict in
+            ExpenseGroup(dateComponents: dict.key, expenses: dict.value)
+        }
+        originalGroupedExpenses = groupedExpenses
     }
-    
 }
 
 struct ExpenseGroup: Identifiable {
     let id = UUID()
     let dateComponents: DateComponents
-    let expenses: [Expense]
+    var expenses: [Expense]
 
     var groupTitle: String {
         let date = Calendar.current.date(from: dateComponents) ?? Date()
@@ -147,7 +151,9 @@ struct ExpenseGroup: Identifiable {
     }
 }
 
-
-#Preview {
-    ContentView()
+struct ExpensesView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExpensesView(currentTab: .constant("Expenses"))
+    }
 }
+

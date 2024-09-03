@@ -11,14 +11,14 @@ import SwiftData
 struct CategoriesView: View {
     @Query(animation: .snappy) private var allCategories: [Category]
     @Environment(\.modelContext) private var context
+
+    @State private var addCategory: Bool = false
+    @State private var categoryName: String = ""
+
+    @State private var deleteRequest: Bool = false
+    @State private var requestedCategory: Category?
+
     var body: some View {
-        // Propriedades da View
-        @State private var addCategory: Bool = false
-        @State private var categoryName: String = ""
-        
-        // Category Delete Request
-        @State private var deleteRequest: Bool = false
-        @State private var requestedCategory: Category?
         NavigationStack {
             List {
                 ForEach(allCategories.sorted(by: {
@@ -29,32 +29,31 @@ struct CategoriesView: View {
                             ForEach(expenses) { expense in
                                 ExpenseCardView(expense: expense, displayTag: false)
                             }
-                        }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button {
                                     deleteRequest.toggle()
                                     requestedCategory = category
-                                    
                                 } label: {
                                     Image(systemName: "trash")
                                 }
                                 .tint(.red)
                             }
-                    } else {
-                        ContentUnavailableView {
-                            Label("No Expenses", systemImage: "tray.fill")
+                        } else {
+                            ContentUnavailableView {
+                                Label("No Expenses", systemImage: "tray.fill")
+                            }
                         }
+                    } label: {
+                        Text(category.categoryName)
                     }
-                } label: {
-                    Text(category.categoryName)
                 }
-                
             }
             .navigationTitle("Categories")
             .overlay {
                 if allCategories.isEmpty {
                     ContentUnavailableView {
-                        Label("No Expenses", systemImage: "tray.fill")
+                        Label("No Categories", systemImage: "tray.fill")
+                    }
                 }
             }
             .toolbar {
@@ -68,31 +67,26 @@ struct CategoriesView: View {
                 }
             }
             .sheet(isPresented: $addCategory) {
-                categoryName = ""
-                
-            } context: {
                 NavigationStack {
-                    Link {
+                    Form {
                         Section("Title") {
                             TextField("General", text: $categoryName)
                         }
-                        
                     }
                     .navigationTitle("Category Name")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
                             Button("Cancel") {
+                                addCategory = false
+                            }
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Add") {
                                 let category = Category(categoryName: categoryName)
                                 context.insert(category)
                                 categoryName = ""
                                 addCategory = false
-                            }
-                            .tint(.red)
-                        }
-                        
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Add") {
                             }
                             .disabled(categoryName.isEmpty)
                         }
@@ -103,11 +97,10 @@ struct CategoriesView: View {
                 .interactiveDismissDisabled()
             }
         }
-    }
         .alert("If you delete a category, all the associated expenses will be deleted too.", isPresented: $deleteRequest) {
             Button(role: .destructive) {
-                if let requestedCategory {
-                    context.delete(requestedCategory)
+                if let category = requestedCategory {
+                    context.delete(category)
                     self.requestedCategory = nil
                 }
             } label: {
@@ -119,8 +112,12 @@ struct CategoriesView: View {
                 Text("Cancel")
             }
         }
+    }
 }
 
-#Preview {
-    CategoriesView()
+struct CategoriesView_Previews: PreviewProvider {
+    static var previews: some View {
+        CategoriesView()
+    }
 }
+
