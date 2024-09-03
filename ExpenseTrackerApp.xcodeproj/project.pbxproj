@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D87080F32C794CAC0052A16E /* AddExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87080F22C794CAC0052A16E /* AddExpenseView.swift */; };
+		D8AA70A22C813CE7003FB45B /* ExpenseCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AA70A12C813CE7003FB45B /* ExpenseCardView.swift */; };
 		D8DF9A182C7805D500831CF7 /* ExpenseTrackerAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DF9A172C7805D500831CF7 /* ExpenseTrackerAppApp.swift */; };
 		D8DF9A1A2C7805D500831CF7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8DF9A192C7805D500831CF7 /* ContentView.swift */; };
 		D8DF9A1C2C7805D600831CF7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8DF9A1B2C7805D600831CF7 /* Assets.xcassets */; };
@@ -21,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		D87080F22C794CAC0052A16E /* AddExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddExpenseView.swift; sourceTree = "<group>"; };
+		D8AA70A12C813CE7003FB45B /* ExpenseCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseCardView.swift; sourceTree = "<group>"; };
 		D8DF9A142C7805D500831CF7 /* ExpenseTrackerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ExpenseTrackerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8DF9A172C7805D500831CF7 /* ExpenseTrackerAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseTrackerAppApp.swift; sourceTree = "<group>"; };
 		D8DF9A192C7805D500831CF7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 				D8DF9A2B2C7808E200831CF7 /* ExpensesView.swift */,
 				D8DF9A2D2C780A4900831CF7 /* CategoriesView.swift */,
 				D87080F22C794CAC0052A16E /* AddExpenseView.swift */,
+				D8AA70A12C813CE7003FB45B /* ExpenseCardView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -175,6 +178,7 @@
 				D8DF9A1A2C7805D500831CF7 /* ContentView.swift in Sources */,
 				D8DF9A302C780C3900831CF7 /* GroupedExpense.swift in Sources */,
 				D87080F32C794CAC0052A16E /* AddExpenseView.swift in Sources */,
+				D8AA70A22C813CE7003FB45B /* ExpenseCardView.swift in Sources */,
 				D8DF9A2E2C780A4900831CF7 /* CategoriesView.swift in Sources */,
 				D8DF9A182C7805D500831CF7 /* ExpenseTrackerAppApp.swift in Sources */,
 				D8DF9A2C2C7808E200831CF7 /* ExpensesView.swift in Sources */,
