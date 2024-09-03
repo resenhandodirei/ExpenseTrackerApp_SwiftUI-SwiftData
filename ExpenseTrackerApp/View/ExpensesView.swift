@@ -53,14 +53,14 @@ struct ExpensesView: View {
                     addButton
                 }
             }
-            .onChange(of: allExpenses) { _ in
-                processExpenses()
+            .onChange(of: allExpenses) { oldExpenses, newExpenses in
+                processExpenses(with: newExpenses)
             }
-            .onChange(of: searchText) { _ in
-                if searchText.isEmpty {
+            .onChange(of: searchText) { oldExpenses, newText in
+                if newText.isEmpty {
                     groupedExpenses = originalGroupedExpenses
                 } else {
-                    filterExpenses()
+                    filterExpenses(for: newText)
                 }
             }
             .sheet(isPresented: $addExpense) {
@@ -99,16 +99,16 @@ struct ExpensesView: View {
         }
     }
 
-    private func processExpenses() {
+    private func processExpenses(with expenses: [Expense]) {
         Task.detached(priority: .high) {
-            let sortedExpenses = allExpenses.sorted { $0.date > $1.date }
+            let sortedExpenses = expenses.sorted { $0.date > $1.date }
             await MainActor.run {
                 createGroupedExpenses(sortedExpenses)
             }
         }
     }
 
-    private func filterExpenses() {
+    private func filterExpenses(for searchText: String) {
         Task.detached(priority: .high) {
             let query = searchText.lowercased()
             let filteredExpenses = originalGroupedExpenses.compactMap { group -> ExpenseGroup? in
