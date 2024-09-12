@@ -66,6 +66,7 @@ struct ExpensesView: View {
             .sheet(isPresented: $addExpense) {
                 AddExpenseView()
                     .interactiveDismissDisabled()
+                    .environment(\.modelContext, context)
             }
         }
     }
@@ -82,7 +83,6 @@ struct ExpensesView: View {
     private func deleteExpense(_ expense: Expense, from group: ExpenseGroup) {
         context.delete(expense)
         withAnimation {
-            // Note: Creating a new ExpenseGroup to avoid mutating the original 'group'
             let updatedGroup = ExpenseGroup(
                 dateComponents: group.dateComponents,
                 expenses: group.expenses.filter { $0.id != expense.id }
@@ -91,7 +91,6 @@ struct ExpensesView: View {
             if updatedGroup.expenses.isEmpty {
                 groupedExpenses.removeAll { $0.id == group.id }
             } else {
-                // Replace the old group with the updated one
                 if let index = groupedExpenses.firstIndex(where: { $0.id == group.id }) {
                     groupedExpenses[index] = updatedGroup
                 }
@@ -154,6 +153,7 @@ struct ExpenseGroup: Identifiable {
 struct ExpensesView_Previews: PreviewProvider {
     static var previews: some View {
         ExpensesView(currentTab: .constant("Expenses"))
+            .modelContainer(for: Expense.self, inMemory: true)
     }
 }
 

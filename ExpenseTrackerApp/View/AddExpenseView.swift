@@ -17,7 +17,7 @@ struct AddExpenseView: View {
     @State private var date: Date = Date()
     @State private var amount: Double = 0.0
     @State private var category: Category?
-
+    
     @State private var allCategories: [Category] = []
 
     var body: some View {
@@ -75,6 +75,7 @@ struct AddExpenseView: View {
                     Button("Add") {
                         addExpense()
                     }
+                    .foregroundColor(.blue)
                     .disabled(isAddButtonDisabled)
                 }
             }
@@ -82,7 +83,7 @@ struct AddExpenseView: View {
     }
     
     var isAddButtonDisabled: Bool {
-        return title.isEmpty || subTitle.isEmpty || amount == 0.0
+        return title.isEmpty || amount == 0.0
     }
     
     func addExpense() {
@@ -102,6 +103,6 @@ struct AddExpenseView: View {
 struct AddExpenseView_Previews: PreviewProvider {
     static var previews: some View {
         AddExpenseView()
+            .modelContainer(for: Expense.self, inMemory: true)
     }
 }
-
